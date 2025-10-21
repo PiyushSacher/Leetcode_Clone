@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 const {Schema}=mongoose;
+
 const userSchema=new Schema({
     firstName:{
         type:String,
@@ -10,7 +11,7 @@ const userSchema=new Schema({
     lastName:{
         type:String,
         minLength:3,
-        mxLength:20
+        maxLength:20
     },
     emailId:{
         type:String,
@@ -19,6 +20,10 @@ const userSchema=new Schema({
         trim:true,
         lowercase:true,
         immutable:true,
+    },
+    password:{
+        type:String,
+        required:true,
     },
     age:{
         type:Number,
