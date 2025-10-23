@@ -15,23 +15,11 @@ const problemSchema=new Schema({
         enum:["easy","medium","hard"],
         required:true
     },
+    
     tags:{
         type:String,
         enum:["Array","String","Linked-List","Graph"]
     },
-    
-    starterCode:[
-        {
-            language:{
-                type:String,
-                required:true,
-            },
-            initialCode:{
-                type:String,
-                required:true,
-            }
-        }
-    ],
     visibleTestCases:[
         {
             input:{
@@ -60,6 +48,32 @@ const problemSchema=new Schema({
             },
         }
     ],
+    
+    starterCode:[
+        {
+            language:{
+                type:String,
+                required:true,
+            },
+            initialCode:{
+                type:String,
+                required:true,
+            }
+        }
+    ],
+    referenceSolution:[
+        {
+            language:{
+                type:String,
+                required:true,
+            },
+            completeCode:{
+                type:String,
+                required:true,
+            }
+        }
+    ],
+
     problemCreator:{
         type:Schema.Types.ObjectId,
         ref:"user",

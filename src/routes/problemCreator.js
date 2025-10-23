@@ -1,12 +1,16 @@
 const express=require("express");
 const ProblemRouter=express.Router();
+const adminMiddleware=require("../middleware/adminMiddleware");
 
-ProblemRouter.post("/create",problemCreate);
-ProblemRouter.get("/:id",problemFetch);
+//these api's can be accessed only by admin
+ProblemRouter.post("/create",adminMiddleware,createProblem);
+ProblemRouter.patch("/:id",adminMiddleware,updateProblem);
+ProblemRouter.delete("/:id",adminMiddleware,deleteProblem);
+
+//these api's can be accessed by anyone
+ProblemRouter.get("/:id",getProblemById);
 ProblemRouter.get("/",getAllProblems);
-ProblemRouter.patch("/:id",problemUpdate);
-ProblemRouter.delete("/:id",problemDelete);
-ProblemRouter.get("/user",SolvedProblem);
+ProblemRouter.get("/user",solvedProblem);
 
 
 
