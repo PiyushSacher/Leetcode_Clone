@@ -47,8 +47,105 @@ const createProblem=async(req,res)=>{
         
 
     }catch(err){
-        res.status(400).send("Error brother "+err);
+        res.status(500).send("Error brother "+err);
     }
 }
 
-module.exports={createProblem};
+const updateProblem=async(req,res)=>{
+    
+    try{
+        const {id}=req.params;
+        if(!id) return res.status(400).send("Invalid id field");
+
+        const dsaProblem=await Problem.findById(id);
+
+        if(!dsaProblem) return res.status(404).send("ID is not present");
+        const {title,description,difficulty,tags,visibleTestCases,hiddenTestCases,starterCode,referenceSolution,problemCreator}=req.body;
+        for(const {language,completeCode} of referenceSolution){
+            //source_code
+            //language_id
+            //stdin
+            //expectedOutput
+
+            const languageId=getLangById(language);
+
+            //expected input for judge0 ,see the documentation for batch submission
+            const submissions=visibleTestCases.map((testcase)=>({
+                // @ts-ignore
+                source_code:completeCode,
+                language_id:languageId,
+                stdin:testcase.input,
+                expected_output:testcase.output,
+            }));
+
+            //submitResult is array of tokens 
+            const submitResult=await submitBatch(submissions);
+            const resultToken=submitResult.map((value)=>value.token);
+            const testResult=await submitToken(resultToken);
+            // console.log(testResult);
+            // console.log(submitResult);
+
+            for(const test of testResult){
+                if(test.status_id==4) return res.status(400).send("Wrong Answer");
+                if(test.status_id==5) return res.status(400).send("Time Limit Exceeded");
+                if(test.status_id==6) return res.status(400).send("Compilation Error");
+                if(test.status_id>=7) return res.status(400).send("Runtime Error");
+            }
+        }
+
+        const newProblem=await Problem.findByIdAndUpdate(id,{...req.body},{runValidators:true, new:true});
+        //new:true mtlb jab document update hojayega , toh jo updated document hai mujhe usko return krke dena
+
+        res.status(200).send(newProblem);
+    }catch(e){
+        res.status(500).send("Errorrr: "+e);
+    }
+}
+
+const deleteProblem=async(req,res)=>{
+    try{
+        const {id}=req.params;
+        if(!id) return res.status(400).send("Invalid id field");
+
+        const deletedProblem=await Problem.findByIdAndDelete(id);
+        if(!deleteProblem) return res.status(404).send("Problem is missing");
+
+        res.status(200).send("Problem deleted successfully");
+
+    }catch(err){
+        res.status(500).send("Errorrr: "+err);
+    }
+}
+
+
+const getProblemById=async(req,res)=>{
+    try{
+        const {id}=req.params;
+        if(!id) return res.status(400).send("Invalid id field");
+
+        const getProblem=await Problem.findById(id);
+        if(!getProblem) return res.status(404).send("Problem is missing");
+
+        res.status(200).send(getProblem);
+
+    }catch(err){
+        res.status(500).send("Errorrr: "+err);
+    }
+}
+
+const getAllProblems=async(req,res)=>{
+    try{
+        const getProblemss=await Problem.find({});
+        if(getProblemss.length===0) return res.status(404).send("No problems available");
+
+        res.status(200).send(getProblemss);
+    }catch(err){
+        res.status(500).send("Errorrr: "+err);
+    }
+}
+
+const solvedProblembyUser=()=>{
+    
+}
+
+module.exports={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblems,solvedProblembyUser};

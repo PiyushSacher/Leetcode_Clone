@@ -14,7 +14,7 @@ const submitBatch = async (submissions) => {
     url: "https://judge0-ce.p.rapidapi.com/submissions/batch",
     params: {
       base64_encoded: "false", //this is a format
-      //made this false
+      //made this false also
     },
     headers: {
       "x-rapidapi-key": "b19c0d193emsh2f76f098c637e3dp1e2bacjsnd1761b6ae610",
@@ -49,7 +49,7 @@ const submitToken = async (result) => {
     url: "https://judge0-ce.p.rapidapi.com/submissions/batch",
     params: {
       tokens: result.join(","), //join converts array into string based on your delimeter
-      base64_encoded: "false", // here also 
+      base64_encoded: "false", // here also , make this false
       fields: "*",
     },
     headers: {
