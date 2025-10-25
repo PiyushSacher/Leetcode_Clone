@@ -40,13 +40,15 @@ const submitCode = async (req, res) => {
     const resultToken = submitResult.map((value) => value.token);
     const testResult = await submitToken(resultToken);
 
+    //submittedResult ko update kro
+
     //console.log(testResult);
     let testCasesPassed=0;
     let runtime=0;
     let memory=0;
     /** @type {"pending"|"accepted"|"wrong"|"error"} */
     let status="accepted";
-    let errorMessage=null
+    let errorMessage=null;
 
     for (const test of testResult) {
       if(test.status_id==3){
@@ -57,11 +59,11 @@ const submitCode = async (req, res) => {
       else{
         if(test.status_id==4){
             status="error";
-            errorMessage=test.stderr
+            errorMessage=test.stderr;
         }
         else {
             status="wrong";
-            errorMessage=test.stderr
+            errorMessage=test.stderr;
         }
       }
     }
