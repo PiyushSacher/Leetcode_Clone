@@ -123,7 +123,11 @@ const getProblemById=async(req,res)=>{
         const {id}=req.params;
         if(!id) return res.status(400).send("Invalid id field");
 
-        const getProblem=await Problem.findById(id);
+        //now we dont want to send everything to the user, like hidden test cases and more fields,
+        //so for that we have a function known as select and we pass the things which we want to send.
+        const getProblem=await Problem.findById(id).select("_id title description difficulty tags visibleTestCases startCode referenceSolution"); 
+        
+
         if(!getProblem) return res.status(404).send("Problem is missing");
 
         res.status(200).send(getProblem);
@@ -135,7 +139,8 @@ const getProblemById=async(req,res)=>{
 
 const getAllProblems=async(req,res)=>{
     try{
-        const getProblemss=await Problem.find({});
+        //same here :   .select
+        const getProblemss=await Problem.find({}).select("_id title difficulty tags");
         if(getProblemss.length===0) return res.status(404).send("No problems available");
 
         res.status(200).send(getProblemss);
