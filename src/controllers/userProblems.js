@@ -2,6 +2,7 @@
 const {getLangById,submitBatch,submitToken}=require("../utils/problemUtility");
 const Problem=require("../models/problem");
 const User = require("../models/user");
+const Submission = require("../models/submission");
 
 const createProblem=async(req,res)=>{
     const {title,description,difficulty,tags,visibleTestCases,hiddenTestCases,starterCode,referenceSolution,problemCreator}=req.body;
@@ -164,6 +165,19 @@ const solvedProblembyUser=async(req,res)=>{
     }catch(err){
         res.status(500).send("Errorrr: "+err);
     }
+};
+
+const submittedProblem=async(req,res)=>{
+    try{
+        const userId=req.result._id;
+        const problemId=req.params.pid;
+
+        const ans=await Submission.find({userId,problemId});
+        if(ans.length===0) return res.status(200).send("No submissions present");
+        res.status(200).send(ans);
+    }catch(err){
+        res.status(500).send("Errorrr: "+err);
+    }
 }
 
-module.exports={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblems,solvedProblembyUser};
+module.exports={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblems,solvedProblembyUser,submittedProblem};

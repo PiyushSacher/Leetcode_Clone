@@ -5,6 +5,7 @@ const validate = require("../utils/validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const redisClient = require("../config/redis");
+const Submission = require("../models/submission");
 
 app.use(express.json());
 
@@ -94,6 +95,21 @@ const adminRegister=async(req,res)=>{
   }
 }
 
-module.exports={register,login,logout,adminRegister};
+const deleteProfile=async(req,res)=>{
+  try{
+    const userId=req.result._id;
+
+    //delete user from userSchema
+    await User.findByIdAndDelete(userId);
+
+    //delete user from submissionSchema
+    await Submission.deleteMany({userId});  //as there can be many submissions by the user , therefore we used deleteMany
+    res.status(200).send("Deleted Successfully");
+  }catch(err){
+    res.status(400).send("ERROR: " + err);
+  }
+}
+
+module.exports={register,login,logout,adminRegister,deleteProfile};
 
 
