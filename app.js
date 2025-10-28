@@ -9,12 +9,14 @@ const authRouter=require("./src/routes/userAuth");
 const redisClient = require("./src/config/redis");
 const adminMiddleware=require("./src/middleware/adminMiddleware");
 const ProblemRouter=require("./src/routes/problemCreator");
+const {submitRouter}=require("./src/routes/submit");
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use("/user",authRouter);
 app.use("/problem",ProblemRouter);
+app.use("/submission",submitRouter);
 
 const InitializeConnection=async()=>{
     try{

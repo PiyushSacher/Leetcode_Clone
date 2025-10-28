@@ -1,5 +1,6 @@
 const Problem = require("../models/problem");
 const Submission = require("../models/submission");
+const User = require("../models/user");
 const {
   getLangById,
   submitBatch,
@@ -76,6 +77,14 @@ const submitCode = async (req, res) => {
     submittedResult.memory=memory;
     
     await submittedResult.save();
+    
+    //problemId ko insert krenge userSchema ke ProblemSolved mai if it is not present there
+    if(!req.result.problemSolved.includes(problemId)){
+      req.result.problemSolved.push(problemId);
+      await req.result.save();
+      //req.result.save() will persist the Mongoose document stored in req.result — in your code req.result comes from User.findById, so it's the User document and save() updates the users collection (model "user" → MongoDB collection "users"). save() runs schema validators & hooks.
+    }
+
     res.status(201).send(submittedResult);
 
   } catch (err) {
@@ -83,4 +92,39 @@ const submitCode = async (req, res) => {
   }
 };
 
-module.exports = { submitCode };
+//runCode api bhi same hai submitCode jaisi bas iss api mai humne apne db mai save nhi krana
+const runCode=async(req,res)=>{
+  try {
+    const userId = req.result._id;
+    const problemId = req.params.id;
+
+    const { code, language } = req.body;
+
+    if (!userId || !code || !problemId || !language)
+      return res.status(400).send("Some field missing");
+    const problem = await Problem.findById(problemId);
+
+
+    //judge0 ko code submit krana hai
+    const languageId = getLangById(language);
+    const submissions = problem.visibleTestCases.map((testcase) => ({
+      // @ts-ignore
+      source_code: code,
+      language_id: languageId,
+      stdin: testcase.input,
+      expected_output: testcase.output,
+    }));
+
+    const submitResult = await submitBatch(submissions);
+    const resultToken = submitResult.map((value) => value.token);
+    const testResult = await submitToken(resultToken);
+
+
+    res.status(201).send(testResult);
+  } catch (err) {
+    res.status(500).send("Errorrr :" + err);
+  }
+
+}
+
+module.exports = { submitCode ,runCode};

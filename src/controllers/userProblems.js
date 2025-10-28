@@ -1,6 +1,7 @@
 // @ts-nocheck
 const {getLangById,submitBatch,submitToken}=require("../utils/problemUtility");
 const Problem=require("../models/problem");
+const User = require("../models/user");
 
 const createProblem=async(req,res)=>{
     const {title,description,difficulty,tags,visibleTestCases,hiddenTestCases,starterCode,referenceSolution,problemCreator}=req.body;
@@ -149,8 +150,20 @@ const getAllProblems=async(req,res)=>{
     }
 }
 
-const solvedProblembyUser=()=>{
-    
+const solvedProblembyUser=async(req,res)=>{
+    try{
+        const userId=req.result._id;
+        
+        //humne jo problemSolved mai problemId store krwayi thi usko hum .populate krenge mtlb uss id ke corresponding saari info layenge problem schema se
+        //.populate means jisko ref kr rha hai wo pura object le aao aur problemSolved mai show krna
+        const user=await User.findById(userId).populate({
+            path:"problemSolved",
+            select:"_id title difficulty tags"
+        });
+        res.status(200).send(user.problemSolved);
+    }catch(err){
+        res.status(500).send("Errorrr: "+err);
+    }
 }
 
 module.exports={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblems,solvedProblembyUser};
