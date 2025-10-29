@@ -1,0 +1,74 @@
+useState hook humare code ko dubara se re-render krwata hai
+useState React ka hook hai jo component ke local state ko hold karta hai.
+jab aap setter function (e.g. setCount) ko call karte ho aur state value change hoti hai, React, component ko dobara render karta hai.
+agar nayi value previous value ke barabar ho to React render skip kar sakta hai.
+
+const [count, setCount] = useState(0);
+// button click se state update hoti hai -> component re-render hoga
+<button onClick={() => setCount(count + 1)}>Increment</button>
+
+
+
+
+
+useEffect component side-effects handle karta hai (data fetch, subscriptions, timers, DOM updates).
+- Dependency array decide karti hai kab effect chalega:
+  - useEffect(() => { ... }, []);  // sirf mount ke time (componentDidMount)
+  - useEffect(() => { ... });      // har render ke baad
+  - useEffect(() => { ... }, [dep]); // jab dep change ho to run
+- Cleanup: agar effect return function de to woh unmount ya next run se pehle cleanup karega:
+  - useEffect(() => {
+      const id = setInterval(() => {}, 1000);
+      return () => clearInterval(id); // cleanup on unmount
+    }, []);
+
+useEffect hook jo fn mai change hai sirf usi fn ko re-render krega baaki fns ko bilkul nhi chedega
+
+
+
+
+
+Prop drilling tab hota hai jab ek parent component apni state/props ko bahut nested child components tak repeatedly pass karta hai, bina beech ke components ko woh value zaroorat ho. Yani intermediate components sirf prop ko agle child tak forward karte hain.
+- Problem kyun banta hai:
+  1) Boilerplate: har level par props likhne padte hain.
+  2) Maintenance mushkil: state location change karne par multiple components update karne padte hain.
+  3) Readability: component hierarchy long aur cluttered ho jati hai.
+  4) Performance: unnecessary re-renders agar intermediate components memoized na hon.
+
+- Simple example (prop drilling):
+  const App = () => {
+    const [user, setUser] = useState({name: 'Ram'});
+    return <A user={user} />;
+  }
+  const A = ({ user }) => <B user={user} />;
+  const B = ({ user }) => <C user={user} />;
+  const C = ({ user }) => <div>{user.name}</div>;
+
+  Yahan A aur B ko user khud istemal nahi ho raha — bas forward ho raha hai.
+
+- Solutions / Alternatives:
+  1) Lift state appropriately / colocate
+     - Agar state sirf kisi subtree ko chahiye to us state ko us subtree ke sabse upar wale component me rakho.
+     - Avoid globalizing state unnecessarily.
+
+  2) React Context API (common)
+     - Create context, wrap provider higher up, children useContext se directly consume karein.
+     - Yeh prop forwarding hatata hai.
+
+     Example:
+     const UserContext = React.createContext(null);
+     const App = () => {
+       const [user, setUser] = useState(...);
+       return (
+         <UserContext.Provider value={{user, setUser}}>
+           <A />
+         </UserContext.Provider>
+       );
+     };
+     // In C:
+     const C = () => {
+       const {user} = useContext(UserContext);
+       return <div>{user.name}</div>;
+     };
+
+Note: Context ka use sahi jagah par karein; frequent changing large objects can still trigger re-renders.
