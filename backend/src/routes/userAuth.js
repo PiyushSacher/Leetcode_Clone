@@ -9,6 +9,23 @@ authRouter.post("/login",login);
 authRouter.post("/logout",userMiddleware,logout);
 authRouter.post("/admin/register",adminMiddleware,adminRegister);    // iss route se hum admin ko register krwa skte hai
 authRouter.delete("/deleteProfile",userMiddleware,deleteProfile) //if user wants to delete his leetcode profile
+// @ts-ignore
+//jaise hi koi new user aayega platform pe toh /check vali api chlegi aur server to req bhejegi
+authRouter.get("/check",userMiddleware,(req,res)=>{
+    // @ts-ignore
+    const reply={
+        // @ts-ignore
+        firstName:req.result.firstName,
+        // @ts-ignore
+        emailId:req.result.emailId,
+        // @ts-ignore
+        _id:req.result._id,
+    }
+    res.status(200).json({
+        user:reply,
+        message:"Valid User"
+    });
+})
 //authRouter.get("/getProfile",getProfile);
 
 module.exports=authRouter;
