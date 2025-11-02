@@ -41,13 +41,22 @@ export const logoutUser=createAsyncThunk(
     "auth/logout",
     async (_,{rejectWithValue})=>{
         try{
-            await axiosClient.get("/logout");
+            await axiosClient.post("/user/logout");
             return null;
         }catch(error){
-            return rejectWithValue(error);
+            if (error.response && error.response.data) {
+                
+                return rejectWithValue(error.response.data); 
+            } 
+            else if (error.message) {
+                
+                return rejectWithValue(error.message);
+            } 
+            else {
+                return rejectWithValue("An unknown error occurred");
         }
     }
-);
+});
 
 const authSlice=createSlice({
     name:"auth",
