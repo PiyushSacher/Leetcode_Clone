@@ -1,5 +1,5 @@
 import './App.css'
-import {Routes,Route} from 'react-router'
+import {Routes,Route,Navigate} from 'react-router'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Homepage from './pages/Homepage'
@@ -9,19 +9,20 @@ import { useEffect } from 'react'
 
 function App() {
   //code likhna isAuthenticated ka
-  const {isAuthenticated}=useSelector((state)=>state.auth);
   const dispatch=useDispatch();
+  const {isAuthenticated}=useSelector((state)=>state.auth);
+  
 
   useEffect(()=>{
     dispatch(checkAuth());
-  },[isAuthenticated]);
+  },[dispatch]);
 
   return(
     <>
     <Routes>
-      <Route path="/" element={<Homepage></Homepage>}></Route>
-      <Route path="/login" element={<Login></Login>}></Route>
-      <Route path="/signup" element={<Signup></Signup>}></Route>
+      <Route path="/" element={isAuthenticated?<Homepage></Homepage>:<Navigate to="/signup"/>}></Route>
+      <Route path="/login" element={isAuthenticated?<Navigate to="/"/>:<Login></Login>}></Route>
+      <Route path="/signup" element={isAuthenticated?<Navigate to="/"/>:<Signup></Signup>}></Route>
     </Routes>
     </>
   )

@@ -10,6 +10,12 @@ const redisClient = require("./src/config/redis");
 const adminMiddleware=require("./src/middleware/adminMiddleware");
 const ProblemRouter=require("./src/routes/problemCreator");
 const {submitRouter}=require("./src/routes/submit");
+const cors=require("cors");
+
+app.use(cors({
+    origin:"http://localhost:5173",  //this ip is allowed
+    credentials:true   
+}));
 
 app.use(express.json());
 app.use(cookieParser());

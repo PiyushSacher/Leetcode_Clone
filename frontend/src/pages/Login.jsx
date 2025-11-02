@@ -2,7 +2,10 @@ import {useForm} from "react-hook-form";
 //we cant directly use zod in our code. We need to install hook-form resolver to use zod
 import {zodResolver} from "@hookform/resolvers/zod";
 import {z} from "zod";
-
+import { useDispatch,useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { loginUser} from "../authSlice";
+import { useEffect } from "react";
 
 //for frontend level validations , we will use zod.
 //we can use react-hook-form for frontend level validations but we dont use it as the syntax is difficult
@@ -20,10 +23,22 @@ const signupSchema=z.object({
 
 
 function Login(){
+    const dispatch=useDispatch();
+    const navigate=useNavigate();
+    // eslint-disable-next-line no-unused-vars
+    const {isAuthenticated,loading,error}=useSelector((state)=>state.auth);
 
     const {register,handleSubmit,formState:{errors},}=useForm({resolver:zodResolver(signupSchema)});
+
+    useEffect(()=>{
+        if(isAuthenticated){
+            navigate("/");
+        }
+    },[isAuthenticated,navigate]);
+
+    
     const submittedData=(data)=>{
-        console.log(data);
+        dispatch(loginUser(data));
     }
 
     //register function returns an object and it handles everything itself
