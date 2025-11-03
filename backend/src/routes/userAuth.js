@@ -1,3 +1,4 @@
+// @ts-nocheck
 const express=require("express");
 const authRouter=express.Router();
 const {register,login,logout,adminRegister,deleteProfile}=require("../controllers/userAuthenticate");
@@ -14,12 +15,10 @@ authRouter.delete("/deleteProfile",userMiddleware,deleteProfile) //if user wants
 authRouter.get("/check",userMiddleware,(req,res)=>{
     // @ts-ignore
     const reply={
-        // @ts-ignore
-        firstName:req.result.firstName,
-        // @ts-ignore
+        firstName:req.result.firstName, 
         emailId:req.result.emailId,
-        // @ts-ignore
         _id:req.result._id,
+        role:req.result.role,
     }
     res.status(200).json({
         user:reply,

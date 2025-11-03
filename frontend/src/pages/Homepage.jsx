@@ -18,7 +18,7 @@ function Homepage(){
     useEffect(()=>{
         const fetchProblems=async()=>{
             try{
-                const {data}=await axiosClient.get('/problem/getAllProblems');
+                const {data}=await axiosClient.get('/problem/getAllProblem');
                 setProblems(data);
             }catch(error){
                 console.log("Error fetching problems:", error);
@@ -27,7 +27,7 @@ function Homepage(){
 
         const fetchSolvedProblems=async()=>{
             try{
-                const {data}=await axiosClient.get("/problem/solvedProblembyUser");
+                const {data}=await axiosClient.get("/problem/problemSolvedByUser");
                 setSolvedProblems(data);
             }catch(error){
                 console.log("Error fetching solved problems:", error);
