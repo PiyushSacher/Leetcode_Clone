@@ -8,7 +8,12 @@ export const registerUser = createAsyncThunk(
       const response = await axiosClient.post("/user/register", userData);
       return response.data.user;
     } catch (error) {
-      return rejectWithValue(error);
+      // --- 1. FIXED: Handle non-serializable error ---
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
+      } else {
+        return rejectWithValue(error.message);
+      }
     }
   }
 );
@@ -68,63 +73,54 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     isAuthenticated: false,
-    loading: true,
+    loading: true, // This should be true to prevent race conditions
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
+    // 2. FIXED: Standardized rejected handler
     const handleRejected = (state, action) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
         if (action.payload) {
-            state.error = action.payload.message || action.payload; // Handles both cases
+            // Handle {message: "..."} or just "..."
+            state.error = action.payload.message || action.payload;
         } else {
             state.error = "An unknown error occurred";
         }
     };
+
+    const handlePending = (state) => {
+        state.loading = true;
+        state.error = null;
+    };
+
+    const handleFulfilled = (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = !!action.payload;
+        state.user = action.payload;
+        state.error = null;
+    };
+
     builder
       //register user cases
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = !!action.payload;
-        state.user = action.payload;
-      })
-      .addCase(registerUser.rejected,handleRejected)
+      .addCase(registerUser.pending, handlePending)
+      .addCase(registerUser.fulfilled, handleFulfilled)
+      .addCase(registerUser.rejected, handleRejected)
 
       //login user cases
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = !!action.payload;
-        state.user = action.payload;
-      })
-      .addCase(loginUser.rejected,handleRejected)
+      .addCase(loginUser.pending, handlePending)
+      .addCase(loginUser.fulfilled, handleFulfilled)
+      .addCase(loginUser.rejected, handleRejected)
 
       //check auth cases
-      .addCase(checkAuth.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(checkAuth.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = !!action.payload;
-        state.user = action.payload;
-      })
+      .addCase(checkAuth.pending, handlePending)
+      .addCase(checkAuth.fulfilled, handleFulfilled)
       .addCase(checkAuth.rejected, handleRejected)
 
       //logout user cases
-      .addCase(logoutUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(logoutUser.pending, handlePending)
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.error = null;

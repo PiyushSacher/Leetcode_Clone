@@ -1,5 +1,6 @@
 import { useEffect,useState } from "react";
-import { NavLink } from "react-router";
+// 1. FIXED: Import from 'react-router-dom'
+import { NavLink } from "react-router"; 
 import { useDispatch,useSelector } from "react-redux";
 import axiosClient from "../utils/axiosClient";
 import { logoutUser } from "../authSlice";
@@ -18,6 +19,7 @@ function Homepage(){
     useEffect(()=>{
         const fetchProblems=async()=>{
             try{
+                // Your route is /getAllProblem
                 const {data}=await axiosClient.get('/problem/getAllProblem');
                 setProblems(data);
             }catch(error){
@@ -27,6 +29,7 @@ function Homepage(){
 
         const fetchSolvedProblems=async()=>{
             try{
+                // Your route is /problemSolvedByUser
                 const {data}=await axiosClient.get("/problem/problemSolvedByUser");
                 setSolvedProblems(data);
             }catch(error){
@@ -43,12 +46,21 @@ function Homepage(){
         setSolvedProblems([]);
     };
 
+    // 2. FIXED: Updated filtering logic for tags (string) and status
     const filteredProblems=problems.filter(problem=>{
         const difficultyMatch=filters.difficulty==="all" || problem.difficulty===filters.difficulty;
-        const tagMatch=filters.tag==="all" || problems.tags===filters.tag;
-        const statusMatch=filters.status==="all" || solvedProblems.some(sp=>sp._id===problem._id);
+        
+        // Your problem.tags is a string, not an array, based on model
+        const tagMatch=filters.tag==="all" || problem.tags?.toLowerCase() === filters.tag.toLowerCase(); 
+        
+        const isSolved = solvedProblems.some(sp=>sp._id===problem._id);
+        const statusMatch = (filters.status === "all") ||
+                            (filters.status === "solved" && isSolved) ||
+                            (filters.status === "unsolved" && !isSolved);
+
         return difficultyMatch && tagMatch && statusMatch;
     });
+    
     return(
         <div className="min-h-screen bg-gray-900 text-gray-200">
             <nav className="navbar bg-gray-800 shadow-lg px-4">
@@ -56,12 +68,20 @@ function Homepage(){
                     <NavLink to="/" className="btn btn-ghost text-xl text-white">LeetCode</NavLink>
                 </div>
                 <div className="flex-none gap-4">
-                    <div className="dropdown dropdown-end">
-                        <div tabIndex={0} className="btn btn-ghost">{user?.firstName}</div>
-                        <ul className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-gray-800 rounded-box w-52 z-50">
-                            <li><button onClick={handleLogout}>Logout</button></li>
-                        </ul>
-                    </div>
+                    {/* 3. FIXED: Show Login/Signup if no user */}
+                    {user ? (
+                        <div className="dropdown dropdown-end">
+                            <div tabIndex={0} role="button" className="btn btn-ghost text-white">{user?.firstName}</div>
+                            <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-gray-800 rounded-box w-52 z-50">
+                                <li><button onClick={handleLogout}>Logout</button></li>
+                            </ul>
+                        </div>
+                    ) : (
+                        <div className="flex gap-2">
+                             <NavLink to="/login" className="btn btn-ghost text-white">Login</NavLink>
+                             <NavLink to="/signup" className="btn btn-primary">Sign Up</NavLink>
+                        </div>
+                    )}
                 </div>
             </nav>
 
@@ -69,14 +89,14 @@ function Homepage(){
         <div className="container mx-auto p-4">
             {/* filters */}
             <div className="flex flex-wrap gap-4 mb-6">
-                {/* new status filter */}
                 <select 
                   className="select bg-gray-700 border border-gray-600"
                   value={filters.status}
                   onChange={(e)=>setFilters({...filters,status:e.target.value})}
                   >
-                    <option value="all">All Problems</option>
-                    <option value="solved">Solved Problems</option>
+                    <option value="all">All</option>
+                    <option value="solved">Solved</option>
+                    <option value="unsolved">Unsolved</option>
                   </select>
 
                   <select
@@ -96,10 +116,11 @@ function Homepage(){
                   onChange={(e)=>setFilters({...filters,tag: e.target.value})}
                   >
                     <option value="all">All Tags</option>
+                    {/* These must match your backend problem model enums */ }
                     <option value="array">Array</option>
-                    <option value="linkedList">Linked List</option>
+                    <option value="string">String</option>
+                    <option value="linked-list">Linked-List</option>
                     <option value="graph">Graph</option>
-                    <option value="dp">DP</option>
                   </select>
             </div>
 
@@ -110,10 +131,10 @@ function Homepage(){
                         <div className="card-body">
                             <div className="flex items-center justify-between">
                                 <h2 className="card-title">
+                                    {/* 4. FIXED: Removed onClick so NavLink works */}
                                     <NavLink 
                                         to={`/problem/${problem._id}`} 
                                         className="link link-hover text-white hover:text-indigo-400"
-                                        onClick={(e) => e.preventDefault()} 
                                     >
                                         {problem.title}
                                     </NavLink>
@@ -132,6 +153,7 @@ function Homepage(){
                                 <div className={`badge ${getDifficultyBadgeColor(problem.difficulty)}`}>
                                     {problem.difficulty}
                                 </div>
+                                {/* 5. FIXED: problem.tags is a string */}
                                 <div className="badge badge-info">
                                     {problem.tags}
                                 </div>
@@ -146,6 +168,7 @@ function Homepage(){
 };
 
 const getDifficultyBadgeColor=(difficulty)=>{
+    if (!difficulty) return "badge-neutral";
     switch (difficulty.toLowerCase()){
         case "easy":return "badge-success";
         case "medium":return "badge-warning";

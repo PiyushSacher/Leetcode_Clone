@@ -11,26 +11,28 @@ const submitCode = async (req, res) => {
   try {
     const userId = req.result._id;
     const problemId = req.params.id;
-
     const { code, language } = req.body;
 
     if (!userId || !code || !problemId || !language)
-      return res.status(400).send("Some field missing");
+      return res.status(400).json({ status: "error", message: "Some field missing" });
+
+    // --- FIX 1: CHECK IF PROBLEM EXISTS ---
     const problem = await Problem.findById(problemId);
+    if (!problem) {
+      return res.status(404).json({ status: "error", message: "Problem not found" });
+    }
 
     const submittedResult = await Submission.create({
       userId,
       problemId,
       code,
       language,
-      status:"pending",
+      status: "pending",
       testCasesTotal: problem.hiddenTestCases.length,
     });
 
-    //judge0 ko code submit krana hai
     const languageId = getLangById(language);
     const submissions = problem.hiddenTestCases.map((testcase) => ({
-      // @ts-ignore
       source_code: code,
       language_id: languageId,
       stdin: testcase.input,
@@ -41,74 +43,92 @@ const submitCode = async (req, res) => {
     const resultToken = submitResult.map((value) => value.token);
     const testResult = await submitToken(resultToken);
 
-    //submittedResult ko update kro
+    let testCasesPassed = 0;
+    let runtime = 0;
+    let memory = 0;
+    let status = "accepted"; // Assume success until proven otherwise
+    let errorMessage = null;
 
-    //console.log(testResult);
-    let testCasesPassed=0;
-    let runtime=0;
-    let memory=0;
-    /** @type {"pending"|"accepted"|"wrong"|"error"} */
-    let status="accepted";
-    let errorMessage=null;
-
+    // --- FIX 2: ROBUST JUDGE0 STATUS CHECKING ---
     for (const test of testResult) {
-      if(test.status_id==3){
-        testCasesPassed++;
-        runtime=runtime+parseFloat(test.time);
-        memory=Math.max(memory,test.memory);
+      switch (test.status_id) {
+        case 3: // Accepted
+          testCasesPassed++;
+          runtime += parseFloat(test.time);
+          memory = Math.max(memory, test.memory);
+          break;
+        
+        case 4: // Wrong Answer
+          status = "wrong";
+          errorMessage = `Wrong Answer. \nExpected: ${test.expected_output}\nGot: ${test.stdout}`;
+          break;
+
+        case 5: // Time Limit Exceeded
+          status = "error";
+          errorMessage = `Time Limit Exceeded (${test.time}s)`;
+          break;
+
+        case 6: // Compilation Error
+          status = "error";
+          errorMessage = test.compile_output || "Compilation Error";
+          break;
+
+        default: // Runtime Error, etc.
+          status = "error";
+          errorMessage = test.stderr || test.status.description || "Runtime Error";
+          break;
       }
-      else{
-        if(test.status_id==4){
-            status="error";
-            errorMessage=test.stderr;
-        }
-        else {
-            status="wrong";
-            errorMessage=test.stderr;
-        }
+      
+      if (status !== "accepted") {
+        break; // Stop checking on first failure
       }
     }
 
-    //store the result in the submission model
-    submittedResult.status=status;
-    submittedResult.testCasesPassed=testCasesPassed;
-    submittedResult.errorMessage=errorMessage;
-    submittedResult.runtime=runtime;
-    submittedResult.memory=memory;
+    // Store the final result in the submission document
+    // @ts-ignore
+    submittedResult.status = status;
+    submittedResult.testCasesPassed = testCasesPassed;
+    submittedResult.errorMessage = errorMessage;
+    submittedResult.runtime = runtime;
+    submittedResult.memory = memory;
     
     await submittedResult.save();
     
-    //problemId ko insert krenge userSchema ke ProblemSolved mai if it is not present there
-    if(!req.result.problemSolved.includes(problemId)){
-      req.result.problemSolved.push(problemId);
-      await req.result.save();
-      //req.result.save() will persist the Mongoose document stored in req.result — in your code req.result comes from User.findById, so it's the User document and save() updates the users collection (model "user" → MongoDB collection "users"). save() runs schema validators & hooks.
+    // --- FIX 3: ONLY UPDATE problemSolved IF ACCEPTED ---
+    if (status === "accepted") {
+      const user = await User.findById(userId); // Re-fetch user to be safe
+      if (!user.problemSolved.includes(problemId)) {
+        user.problemSolved.push(problemId);
+        await user.save();
+      }
     }
 
-    res.status(201).send(submittedResult);
+    res.status(201).json(submittedResult);
 
   } catch (err) {
-    res.status(500).send("Errorrr :" + err);
+    res.status(500).json({ status: "error", message: "Server Error: " + err.message });
   }
 };
 
-//runCode api bhi same hai submitCode jaisi bas iss api mai humne apne db mai save nhi krana
-const runCode=async(req,res)=>{
+const runCode = async (req, res) => {
   try {
     const userId = req.result._id;
     const problemId = req.params.id;
-
     const { code, language } = req.body;
 
     if (!userId || !code || !problemId || !language)
-      return res.status(400).send("Some field missing");
+      return res.status(400).json({ status: "error", message: "Some field missing" });
+
+    // --- FIX 1: CHECK IF PROBLEM EXISTS ---
     const problem = await Problem.findById(problemId);
+    if (!problem) {
+      return res.status(404).json({ status: "error", message: "Problem not found" });
+    }
 
-
-    //judge0 ko code submit krana hai
     const languageId = getLangById(language);
+    
+    // Use visibleTestCases for run
     const submissions = problem.visibleTestCases.map((testcase) => ({
-      // @ts-ignore
       source_code: code,
       language_id: languageId,
       stdin: testcase.input,
@@ -119,12 +139,11 @@ const runCode=async(req,res)=>{
     const resultToken = submitResult.map((value) => value.token);
     const testResult = await submitToken(resultToken);
 
-
-    res.status(201).send(testResult);
+    // Frontend handles the raw result, so just send it
+    res.status(201).json(testResult);
   } catch (err) {
-    res.status(500).send("Errorrr :" + err);
+    res.status(500).json({ status: "error", message: "Server Error: " + err.message });
   }
+};
 
-}
-
-module.exports = { submitCode ,runCode};
+module.exports = { submitCode, runCode };
