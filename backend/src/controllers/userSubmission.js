@@ -1,3 +1,4 @@
+
 const Problem = require("../models/problem");
 const Submission = require("../models/submission");
 const User = require("../models/user");
@@ -11,15 +12,18 @@ const submitCode = async (req, res) => {
   try {
     const userId = req.result._id;
     const problemId = req.params.id;
-    const { code, language } = req.body;
+    let { code, language } = req.body;
+
 
     if (!userId || !code || !problemId || !language)
       return res.status(400).json({ status: "error", message: "Some field missing" });
 
-    // --- FIX 1: CHECK IF PROBLEM EXISTS ---
+    if(language==="cpp") language="c++";
+
+    
     const problem = await Problem.findById(problemId);
-    if (!problem) {
-      return res.status(404).json({ status: "error", message: "Problem not found" });
+    if (!problem || !problem.hiddenTestCases || problem.hiddenTestCases.length === 0) {
+      return res.status(404).json({ status: "error", message: "Problem or its hidden test cases not found" });
     }
 
     const submittedResult = await Submission.create({
@@ -38,18 +42,32 @@ const submitCode = async (req, res) => {
       stdin: testcase.input,
       expected_output: testcase.output,
     }));
+    // console.log("🧠 Submitting to Judge0:");
+    // console.log("Language:", language, "→", languageId);
+    // console.log("Hidden testcases:", problem.hiddenTestCases.length);
+
 
     const submitResult = await submitBatch(submissions);
+    
+    
+    if (!submitResult || !Array.isArray(submitResult)) {
+        console.error("Judge0 submitBatch failed or returned invalid data:", submitResult);
+        submittedResult.status = "error";
+        submittedResult.errorMessage = "Code execution service failed.";
+        await submittedResult.save();
+        return res.status(500).json({ status: "error", message: "Error contacting code execution service" });
+    }
+
     const resultToken = submitResult.map((value) => value.token);
     const testResult = await submitToken(resultToken);
 
     let testCasesPassed = 0;
     let runtime = 0;
     let memory = 0;
-    let status = "accepted"; // Assume success until proven otherwise
+    let status = "accepted"; 
     let errorMessage = null;
 
-    // --- FIX 2: ROBUST JUDGE0 STATUS CHECKING ---
+    
     for (const test of testResult) {
       switch (test.status_id) {
         case 3: // Accepted
@@ -73,7 +91,7 @@ const submitCode = async (req, res) => {
           errorMessage = test.compile_output || "Compilation Error";
           break;
 
-        default: // Runtime Error, etc.
+        default: // Runtime Error, Internal Error, etc.
           status = "error";
           errorMessage = test.stderr || test.status.description || "Runtime Error";
           break;
@@ -94,9 +112,9 @@ const submitCode = async (req, res) => {
     
     await submittedResult.save();
     
-    // --- FIX 3: ONLY UPDATE problemSolved IF ACCEPTED ---
+    
     if (status === "accepted") {
-      const user = await User.findById(userId); // Re-fetch user to be safe
+      const user = await User.findById(userId); 
       if (!user.problemSolved.includes(problemId)) {
         user.problemSolved.push(problemId);
         await user.save();
@@ -119,10 +137,10 @@ const runCode = async (req, res) => {
     if (!userId || !code || !problemId || !language)
       return res.status(400).json({ status: "error", message: "Some field missing" });
 
-    // --- FIX 1: CHECK IF PROBLEM EXISTS ---
+  
     const problem = await Problem.findById(problemId);
-    if (!problem) {
-      return res.status(404).json({ status: "error", message: "Problem not found" });
+    if (!problem || !problem.visibleTestCases) {
+      return res.status(404).json({ status: "error", message: "Problem or its visible test cases not found" });
     }
 
     const languageId = getLangById(language);
@@ -136,11 +154,19 @@ const runCode = async (req, res) => {
     }));
 
     const submitResult = await submitBatch(submissions);
+    //console.log(submitResult);
+    
+   
+    if (!submitResult || !Array.isArray(submitResult)) {
+        console.error("Judge0 submitBatch failed or returned invalid data:", submitResult);
+        return res.status(500).json({ status: "error", message: "Error contacting code execution service" });
+    }
+
     const resultToken = submitResult.map((value) => value.token);
     const testResult = await submitToken(resultToken);
 
     // Frontend handles the raw result, so just send it
-    res.status(201).json(testResult);
+    res.status(201).json({ status: "success", output: testResult });
   } catch (err) {
     res.status(500).json({ status: "error", message: "Server Error: " + err.message });
   }

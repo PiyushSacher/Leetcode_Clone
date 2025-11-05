@@ -1,9 +1,11 @@
 const axios = require("axios");
+
 const getLangById = (l) => {
   const lang = {
     "c++": 54,
-    java: 62,
-    javascript: 63,
+    "cpp": 54,
+    "java": 62,
+    "javascript": 63,
   };
   return lang[l.toLowerCase()];
 };
@@ -13,8 +15,7 @@ const submitBatch = async (submissions) => {
     method: "POST",
     url: "https://judge0-ce.p.rapidapi.com/submissions/batch",
     params: {
-      base64_encoded: "false", //this is a format
-      //made this false also
+      base64_encoded: "false",
     },
     headers: {
       "x-rapidapi-key": process.env.JUDGE0_KEY,
@@ -26,21 +27,27 @@ const submitBatch = async (submissions) => {
     },
   };
 
-  async function fetchData() {
-    try {
-      const response = await axios.request(options);
-      return response.data; //see the response format from the documentation
-    } catch (error) {
-      console.error(error);
-    }
+  try {
+    const response = await axios.request(options);
+    
+    return response.data; 
+  } catch (error) {
+  console.error(
+    "Error submitting batch to Judge0:",
+    error.response?.status,
+    error.response?.data || error.message
+  );
+  return null;
+
   }
-  return await fetchData();
 };
 
-const waiting=async (time)=>{
-   setTimeout(()=>{
-    return 1;
-   },time);
+
+/**
+ * @param {number} time
+ */
+const waiting = (time) => {
+   return new Promise(resolve => setTimeout(resolve, time));
 }
 
 const submitToken = async (result) => {
@@ -48,8 +55,8 @@ const submitToken = async (result) => {
     method: "GET",
     url: "https://judge0-ce.p.rapidapi.com/submissions/batch",
     params: {
-      tokens: result.join(","), //join converts array into string based on your delimeter
-      base64_encoded: "false", // here also , make this false
+      tokens: result.join(","),
+      base64_encoded: "false",
       fields: "*",
     },
     headers: {
@@ -63,15 +70,26 @@ const submitToken = async (result) => {
       const response = await axios.request(options);
       return response.data;
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching tokens from Judge0:", error.message);
+      // Return null so we can check if the fetch failed
+      return null;
     }
   }
 
   while (true) {
     const res = await fetchData();
+    
+    // Check if res is valid before proceeding
+    if (!res || !res.submissions || res.submissions.length === 0) {
+        console.error("Judge0 polling failed, breaking loop.");
+        return []; 
+    }
+
+    // Status_id > 2 means the submission is FINISHED (Accepted, Wrong, or Error)
     const isResultObtained = res.submissions.every((r) => r.status_id > 2);
     if (isResultObtained) return res.submissions;
 
+    // AWAIT the promise to genuinely pause the execution
     await waiting(1000);
   }
 };
