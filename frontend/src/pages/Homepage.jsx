@@ -74,6 +74,7 @@ function Homepage(){
                             <div tabIndex={0} role="button" className="btn btn-ghost text-white">{user?.firstName}</div>
                             <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-gray-800 rounded-box w-52 z-50">
                                 <li><button onClick={handleLogout}>Logout</button></li>
+                                {user.role==="admin" && <li><NavLink to="/admin">Admin</NavLink></li>}
                             </ul>
                         </div>
                     ) : (

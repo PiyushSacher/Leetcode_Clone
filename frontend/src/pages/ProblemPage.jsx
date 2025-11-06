@@ -1,9 +1,17 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import Editor from "@monaco-editor/react";
 import { useParams, NavLink } from "react-router";
 import axiosClient from "../utils/axiosClient";
 import { useSelector, useDispatch } from "react-redux";
+import SubmissionHistory from "./SubmissionHistory";
+
+const langMap={
+  cpp:"C++",
+  java:"Java",
+  javascript:"JavaScript"
+}
 
 const ProblemPage = () => {
   const [problem, setProblem] = useState(null);
@@ -36,8 +44,7 @@ const ProblemPage = () => {
 
         // Set starter code based on fetched data
         const starter = data?.startCode?.find(
-          (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
-        )?.initialCode;
+          (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase())?.initialCode;
         setCode(starter || `// No starter code for ${selectedLanguage}`);
       } catch (error) {
         console.error("Error fetching problem:", error);
@@ -227,7 +234,7 @@ const ProblemPage = () => {
               <div>
                 <h2 className="text-xl font-semibold">My Submissions</h2>
                 <p className="text-gray-400 mt-4">
-                  You have no submissions for this problem yet.
+                  <SubmissionHistory problemId={problemId}/>
                 </p>
                 {/* In real app, you'd fetch and map over submissions */}
               </div>

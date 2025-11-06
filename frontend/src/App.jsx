@@ -1,11 +1,13 @@
 import './App.css'
-// 1. FIXED: Import from 'react-router-dom'
+
 import {Routes,Route,Navigate} from 'react-router' 
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import AdminPanel from './pages/AdminPanel'
+import Admin from './pages/Admin'
 import Homepage from './pages/Homepage'
-// 2. IMPORT THE PROBLEM PAGE
+import AdminDelete from './pages/AdminDelete'
+
 import ProblemPage from './pages/ProblemPage' 
 import {checkAuth} from "./authSlice"
 import { useDispatch,useSelector } from 'react-redux'
@@ -32,16 +34,18 @@ function App() {
       <Route path="/" element={isAuthenticated?<Homepage />:<Navigate to="/signup"/>}></Route>
       <Route path="/login" element={isAuthenticated?<Navigate to="/"/>:<Login />}></Route>
       <Route path="/signup" element={isAuthenticated?<Navigate to="/"/>:<Signup />}></Route>
-      {/* 3. FIXED: Robust check for admin role */}
-      <Route path="/admin" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminPanel/>:<Navigate to="/"/>}></Route>
       
-      {/* 4. ADDED: Route for the problem page */}
+      <Route path="/admin" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<Admin/>:<Navigate to="/"/>}></Route>
+      <Route path="/admin/create" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminPanel/>:<Navigate to="/"/>}></Route>
+      <Route path="/admin/delete" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminDelete/>:<Navigate to="/"/>}></Route>
+      {/* <Route path="/admin" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminPanel/>:<Navigate to="/"/>}></Route> */}
+
       <Route 
         path="/problem/:problemId" 
         element={isAuthenticated ? <ProblemPage /> : <Navigate to="/login" />}
       />
       
-      {/* 404 Fallback */}
+      
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
     </>
