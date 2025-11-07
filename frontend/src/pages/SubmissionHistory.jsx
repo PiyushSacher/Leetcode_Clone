@@ -146,7 +146,7 @@ const SubmissionHistory = ({ problemId }) => {
                     <td>
                       <button
                         className="btn btn-s btn-outline"
-                        onClick={() => selectedSubmission(sub)}
+                        onClick={() => setSelectedSubmission(sub)}
                       >
                         Code
                       </button>

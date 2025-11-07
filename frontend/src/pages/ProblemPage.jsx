@@ -6,12 +6,13 @@ import { useParams, NavLink } from "react-router";
 import axiosClient from "../utils/axiosClient";
 import { useSelector, useDispatch } from "react-redux";
 import SubmissionHistory from "./SubmissionHistory";
+import ChatAI from "./ChatAI";
 
-const langMap={
-  cpp:"C++",
-  java:"Java",
-  javascript:"JavaScript"
-}
+const langMap = {
+  cpp: "C++",
+  java: "Java",
+  javascript: "JavaScript",
+};
 
 const ProblemPage = () => {
   const [problem, setProblem] = useState(null);
@@ -44,7 +45,8 @@ const ProblemPage = () => {
 
         // Set starter code based on fetched data
         const starter = data?.startCode?.find(
-          (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase())?.initialCode;
+          (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
+        )?.initialCode;
         setCode(starter || `// No starter code for ${selectedLanguage}`);
       } catch (error) {
         console.error("Error fetching problem:", error);
@@ -177,19 +179,23 @@ const ProblemPage = () => {
         <div className="bg-gray-800 rounded-lg shadow-lg flex flex-col overflow-auto">
           {/* Left Panel Tabs */}
           <div className="flex border-b border-gray-700 flex-shrink-0">
-            {["description", "editorial", "solutions", "submissions"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  className={`${tabBtn} ${
-                    activeLeftTab === tab ? activeTabBtn : inactiveTabBtn
-                  }`}
-                  onClick={() => setActiveLeftTab(tab)}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              )
-            )}
+            {[
+              "description",
+              "editorial",
+              "solutions",
+              "submissions",
+              "chatAI",
+            ].map((tab) => (
+              <button
+                key={tab}
+                className={`${tabBtn} ${
+                  activeLeftTab === tab ? activeTabBtn : inactiveTabBtn
+                }`}
+                onClick={() => setActiveLeftTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </div>
 
           {/* Left Panel Content */}
@@ -230,11 +236,26 @@ const ProblemPage = () => {
                 </div>
               </div>
             )}
+            {activeLeftTab === "editorial" && (
+              <div className="prose max-w-none">
+                <h2 className="text-xl font-bold mb-4">Editorial </h2>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">{`Editorial is here for the problem`}</div>
+              </div>
+            )}
+
+            {activeLeftTab === "chatAI" && (
+              <div className="prose max-w-none">
+                <h2 className="text-xl font-bold mb-4">Chat with AI </h2>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <ChatAI></ChatAI>
+                </div>
+              </div>
+            )}
             {activeLeftTab === "submissions" && (
               <div>
                 <h2 className="text-xl font-semibold">My Submissions</h2>
                 <p className="text-gray-400 mt-4">
-                  <SubmissionHistory problemId={problemId}/>
+                  <SubmissionHistory problemId={problemId} />
                 </p>
                 {/* In real app, you'd fetch and map over submissions */}
               </div>

@@ -44,8 +44,7 @@ function App() {
         path="/problem/:problemId" 
         element={isAuthenticated ? <ProblemPage /> : <Navigate to="/login" />}
       />
-      
-      
+       
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
     </>
