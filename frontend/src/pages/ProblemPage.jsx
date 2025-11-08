@@ -44,7 +44,7 @@ const ProblemPage = () => {
         setProblem(data);
 
         // Set starter code based on fetched data
-        const starter = data?.startCode?.find(
+        const starter = data?.starterCode?.find(
           (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
         )?.initialCode;
         setCode(starter || `// No starter code for ${selectedLanguage}`);
@@ -60,7 +60,7 @@ const ProblemPage = () => {
   // Update code in editor when language changes
   useEffect(() => {
     if (problem) {
-      const starter = problem?.startCode?.find(
+      const starter = problem?.starterCode?.find(
         (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
       )?.initialCode;
       setCode(starter || `// No starter code for ${selectedLanguage}`);
@@ -247,7 +247,7 @@ const ProblemPage = () => {
               <div className="prose max-w-none">
                 <h2 className="text-xl font-bold mb-4">Chat with AI </h2>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  <ChatAI></ChatAI>
+                  <ChatAI problem={problem}></ChatAI>
                 </div>
               </div>
             )}

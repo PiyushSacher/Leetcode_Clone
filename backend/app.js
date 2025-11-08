@@ -11,6 +11,7 @@ const adminMiddleware=require("./src/middleware/adminMiddleware");
 const ProblemRouter=require("./src/routes/problemCreator");
 const {submitRouter}=require("./src/routes/submit");
 const cors=require("cors");
+const aiRouter=require("./src/routes/aiChatting");
 
 app.use(cors({
     origin:"http://localhost:5173",  //this ip is allowed
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use("/user",authRouter);
 app.use("/problem",ProblemRouter);
 app.use("/submission",submitRouter);
+app.use("/ai",aiRouter);
 
 const InitializeConnection=async()=>{
     try{

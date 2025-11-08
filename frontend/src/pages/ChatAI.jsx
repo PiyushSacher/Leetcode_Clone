@@ -6,35 +6,40 @@ import axiosClient from "../utils/axiosClient";
 
 function ChatAI({problem}){
     const [messages,setMessages]=useState([
-        {role:"model",content:"Hi , how are you "},
-        {role:"user",content:"I am good "}
+        {role:"model",parts:[{text:"Hi, how r u?"}]},
+        {role:"user",parts:[{text:"I am good"}]},
     ]);
 
     const {register,handleSubmit,reset,formState:{errors}}=useForm();
     const messagesEndRef=useRef(null);
 
     useEffect(()=>{
-        messagesEndRef.current?.scrollIntoView({behaviour:"smooth"});
+        messagesEndRef.current?.scrollIntoView({behavior:"smooth"});
     },[messages]);
 
     const onSubmit=async(data)=>{
-        setMessages(prev=>[...prev,{role:"user",content:data.message}]);
+        const userMsg = { role: "user", parts: [{ text: data.message }] };
+        const newMessages = [...messages, userMsg];
+        setMessages(prev=>[...prev,{role:"user",parts:[{text:data.message}]}]);
         reset();
 
         try{
-            const response=await axiosClient.post("chat/ai",{
-                message:data.message
-            })
+            const response=await axiosClient.post("ai/chat",{
+                messages:newMessages,
+                title:problem.title,
+                description:problem.description,
+                testCases:problem.visibleTestCases,
+            });
 
             setMessages(prev=>[...prev,{
                 role:"model",
-                content:response.data.message|| response.data.content
+                parts:[{text:response.data.message}]
             }]);
         }catch(error){
             console.error("API ERROR:",error);
             setMessages(prev=>[...prev,{
                 role:"model",
-                content:"Sorry, I encountered an errorr"
+                parts:[{text:"Error from AI Chatbot"}]
             }]);
         }
     };
@@ -47,7 +52,7 @@ function ChatAI({problem}){
                     key={index}
                     className={`chat ${msg.role==="user"?"chat-end":"chat-start"}`}
                     >
-                        <div className="chat-bubble bg-base-200 text-base-content">{msg.content}
+                        <div className="chat-bubble bg-base-200 text-base-content">{msg.parts[0].text}
                         </div>
                     </div>
                 ))}
