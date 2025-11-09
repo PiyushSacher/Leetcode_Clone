@@ -3,6 +3,7 @@ const {getLangById,submitBatch,submitToken}=require("../utils/problemUtility");
 const Problem=require("../models/problem");
 const User = require("../models/user");
 const Submission = require("../models/submission");
+const solutionVideo=require("../models/solutionVideo");
 
 const createProblem=async(req,res)=>{
     const {title,description,difficulty,tags,visibleTestCases,hiddenTestCases,starterCode,referenceSolution,problemCreator}=req.body;
@@ -129,9 +130,19 @@ const getProblemById=async(req,res)=>{
         //so for that we have a function known as select and we pass the things which we want to send.
         const getProblem=await Problem.findById(id).select("_id title description difficulty tags visibleTestCases startCode referenceSolution"); 
         
-
         if(!getProblem) return res.status(404).send("Problem is missing");
 
+        //video ka url bhi yaha se bhejdo
+        const videos=await solutionVideo.find({problemId:id});
+        if(videos){
+            
+            getProblem.secureUrl=secureUrl;
+            getProblem.cloudinaryPublicId=cloudinaryPublicId;
+            getProblem.thumbnailUrl=thumbnailUrl;
+            getProblem.duration=duration;
+            return res.status(200).send(getProblem);
+            
+        }
         res.status(200).send(getProblem);
 
     }catch(err){

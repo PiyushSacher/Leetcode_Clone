@@ -12,6 +12,7 @@ const ProblemRouter=require("./src/routes/problemCreator");
 const {submitRouter}=require("./src/routes/submit");
 const cors=require("cors");
 const aiRouter=require("./src/routes/aiChatting");
+const videoRouter=require("./src/routes/videoCreator");
 
 app.use(cors({
     origin:"http://localhost:5173",  //this ip is allowed
@@ -25,6 +26,7 @@ app.use("/user",authRouter);
 app.use("/problem",ProblemRouter);
 app.use("/submission",submitRouter);
 app.use("/ai",aiRouter);
+app.use("/video",videoRouter);
 
 const InitializeConnection=async()=>{
     try{

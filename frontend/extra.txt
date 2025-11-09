@@ -72,3 +72,8 @@ Prop drilling tab hota hai jab ek parent component apni state/props ko bahut nes
      };
 
 Note: Context ka use sahi jagah par karein; frequent changing large objects can still trigger re-renders.
+
+
+
+//for video integration we will use cloudinary
+cloudinary ek file storage system hai jaha hum apni videos daal skte hai
