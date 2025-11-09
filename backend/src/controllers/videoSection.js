@@ -35,13 +35,13 @@ const generateUploadSignature=async(req,res)=>{
             uploadParams,
             process.env.CLOUDINARY_API_SECRET
         );
+        
 
         res.json({
             signature,
             timestamp,
             public_id:publicId,
-            // @ts-ignore
-            api_key=process.env.CLOUDINARY_API_KEY,
+            api_key:process.env.CLOUDINARY_API_KEY,
             cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
             upload_url:`https://api.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
         })
@@ -94,19 +94,15 @@ const saveVideoMetadata=async(req,res)=>{
             thumbnailUrl
         });
 
-        // @ts-ignore
-        await SolutionVideo.save();
+       
+        await videoSolution.save();
         res.status(201).json({
             message:"Video solution saved successfully",
             videoSolution:{
-                // @ts-ignore
-                id:SolutionVideo._id,
-                // @ts-ignore
-                thumbnailUrl:SolutionVideo.thumbnailUrl,
-                // @ts-ignore
-                duration:SolutionVideo.duration,
-                // @ts-ignore
-                uploadedAt:SolutionVideo.createdAt
+                id:videoSolution._id, 
+                thumbnailUrl:videoSolution.thumbnailUrl,
+                duration:videoSolution.duration,
+                uploadedAt:videoSolution.createdAt
             }
         });
     }catch(error){
