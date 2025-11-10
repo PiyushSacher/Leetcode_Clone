@@ -133,7 +133,7 @@ const getProblemById=async(req,res)=>{
         if(!getProblem) return res.status(404).send("Problem is missing");
 
         //video ka url bhi yaha se bhejdo
-        const videos=await solutionVideo.find({problemId:id});
+        const videos=await solutionVideo.findOne({problemId:id});
         if(videos){
             
             getProblem.secureUrl=secureUrl;

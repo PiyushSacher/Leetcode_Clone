@@ -43,7 +43,7 @@ const generateUploadSignature=async(req,res)=>{
             public_id:publicId,
             api_key:process.env.CLOUDINARY_API_KEY,
             cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
-            upload_url:`https://api.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
+            upload_url:`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
         })
     }catch(error){
         console.log("Error generating upload signature", error);
@@ -85,7 +85,7 @@ const saveVideoMetadata=async(req,res)=>{
         });
 
         // @ts-ignore
-        const videoSolution=new SolutionVideo({
+        const videoSolution=await SolutionVideo.create({
             problemId,
             userId,
             cloudinaryPublicId,
@@ -95,7 +95,6 @@ const saveVideoMetadata=async(req,res)=>{
         });
 
        
-        await videoSolution.save();
         res.status(201).json({
             message:"Video solution saved successfully",
             videoSolution:{
@@ -115,10 +114,10 @@ const saveVideoMetadata=async(req,res)=>{
 // @ts-ignore
 const deleteVideo=async(req,res)=>{
     try{
-        const {videoId}=req.params;
+        const {problemId}=req.params;
         const userId=req.result._id;
 
-        const video=await SolutionVideo.findByIdAndDelete(videoId);
+        const video=await SolutionVideo.findOneAndDelete({problemId:problemId});
         if(!video) return res.status(404).json({error:"Video not found"});
 
         await cloudinary.uploader.destroy(video.cloudinaryPublicId,{resource_type:"video",invalidate:true});

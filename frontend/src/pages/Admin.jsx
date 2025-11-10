@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2 ,Video} from "lucide-react";
 import { NavLink } from "react-router";
 
 function Admin() {
@@ -33,6 +33,15 @@ function Admin() {
       color: "btn-error",
       bgColor: "bg-red-500/10",
       route: "/admin/delete",
+    },
+    {
+      id: "video",
+      title: "Video Problems",
+      description: "Upload and Delete Videos",
+      icon: Video,
+      color: "btn-success",
+      bgColor: "bg-green-500/10",
+      route: "/admin/video",
     },
   ];
 

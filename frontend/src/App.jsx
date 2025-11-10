@@ -7,7 +7,8 @@ import AdminPanel from './pages/AdminPanel'
 import Admin from './pages/Admin'
 import Homepage from './pages/Homepage'
 import AdminDelete from './pages/AdminDelete'
-
+import AdminVideo from './pages/AdminVideo'
+import AdminUpload from './pages/AdminUpload'
 import ProblemPage from './pages/ProblemPage' 
 import {checkAuth} from "./authSlice"
 import { useDispatch,useSelector } from 'react-redux'
@@ -38,6 +39,9 @@ function App() {
       <Route path="/admin" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<Admin/>:<Navigate to="/"/>}></Route>
       <Route path="/admin/create" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminPanel/>:<Navigate to="/"/>}></Route>
       <Route path="/admin/delete" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminDelete/>:<Navigate to="/"/>}></Route>
+      <Route path="/admin/video" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminVideo/>:<Navigate to="/"/>}></Route>
+      <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminUpload/>:<Navigate to="/"/>}></Route>
+
       {/* <Route path="/admin" element={isAuthenticated && user?.role?.toLowerCase()==="admin"?<AdminPanel/>:<Navigate to="/"/>}></Route> */}
 
       <Route 
