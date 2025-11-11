@@ -8,7 +8,7 @@ const problemSchema=z.object({
     title:z.string().min(1,"Title is required"),
     description:z.string().min(1,"Description is required"),
     difficulty:z.enum(["easy","medium","hard"]),
-    tags:z.enum(["array","linkedList","graph","dp"]),
+    tags:z.enum(["Array", "String", "LinkedList", "Graph"]),
     visibleTestCases:z.array(
         z.object({
             input:z.string().min(1,"Input is required"),
@@ -22,15 +22,15 @@ const problemSchema=z.object({
             output:z.string().min(1,"Output is required"),
         })
     ).min(1,"At least one hidden test case required"),
-    startCode:z.array(
+    starterCode:z.array(
         z.object({
-            language:z.enum(["C++","Java","JavaScript"]),
+            language:z.enum(["C++","Java","Javascript"]),
             initialCode:z.string().min(1,"Initial code is required")
         })
     ).length(3,"All three languages required"),
     referenceSolution:z.array(
         z.object({
-            language:z.enum(["C++","Java","JavaScript"]),
+            language:z.enum(["C++","Java","Javascript"]),
             completeCode:z.string().min(1,"Complete code is required")
         })
     ).length(3,"All three languages required")
@@ -55,23 +55,23 @@ function AdminPanel(){
             title: "",
             description: "",
             difficulty: "easy",
-            tags: "array",
+            tags: "Array",
             visibleTestCases: [{ input: "", output: "", explanation: "" }],
             hiddenTestCases: [{ input: "", output: "" }],
-            startCode: [
+            starterCode: [
                 { language: "C++", initialCode: "" },
                 { language: "Java", initialCode: "" },
-                { language: "JavaScript", initialCode: "" }
+                { language: "Javascript", initialCode: "" }
             ],
             referenceSolution: [
                 { language: "C++", completeCode: "" },
                 { language: "Java", completeCode: "" },
-                { language: "JavaScript", completeCode: "" }
+                { language: "Javascript", completeCode: "" }
             ]
         }
     });
 
-    // --- Setup all 4 Field Arrays ---
+    
     const { fields: visibleFields, append: appendVisible, remove: removeVisible } = useFieldArray({
         control, name: "visibleTestCases"
     });
@@ -82,7 +82,7 @@ function AdminPanel(){
 
     // These are static (length 3), so we only need `fields`
     const { fields: startCodeFields } = useFieldArray({
-        control, name: "startCode"
+        control, name: "starterCode"
     });
 
     const { fields: solutionFields } = useFieldArray({
@@ -96,7 +96,7 @@ function AdminPanel(){
             alert("Problem created successfully!");
             navigate("/"); // Navigate to homepage
         } catch (error) {
-            console.error("Failed to create problem:", error);
+            console.error("Failed to create problem:", error.message);
             alert("Failed to create problem. Check console.");
         }
     };
@@ -144,10 +144,10 @@ function AdminPanel(){
                         <div>
                             <label htmlFor="tags" className={labelStyle}>Tag</label>
                             <select id="tags" {...register("tags")} className={inputStyle}>
-                                <option value="array">Array</option>
-                                <option value="linkedList">Linked List</option>
-                                <option value="graph">Graph</option>
-                                <option value="dp">DP</option>
+                                <option value="Array">Array</option>
+                                <option value="String">String</option>
+                                <option value="LinkedList">LinkedList</option>
+                                <option value="Graph">Graph</option>
                             </select>
                             <ErrorMessage error={errors.tags} />
                         </div>
@@ -232,17 +232,17 @@ function AdminPanel(){
                 {/* --- CARD 4: Starter Code (Static) --- */}
                 <div className={cardStyle}>
                     <h2 className="text-2xl font-semibold">Starter Code</h2>
-                    <ErrorMessage error={errors.startCode?.root} />
+                    <ErrorMessage error={errors.starterCode?.root} />
                     {startCodeFields.map((field, index) => (
                         <div key={field.id} className="p-4 border border-gray-700 rounded-md space-y-3">
                             <label className={`${labelStyle} text-lg`}>{field.language}</label>
                             {/* We don't need to register language, it's set in defaultValues */}
                             <textarea 
-                                {...register(`startCode.${index}.initialCode`)} 
+                                {...register(`starterCode.${index}.initialCode`)} 
                                 className={textareaStyle} 
                                 rows={8}
                             />
-                            <ErrorMessage error={errors.startCode?.[index]?.initialCode} />
+                            <ErrorMessage error={errors.starterCode?.[index]?.initialCode} />
                         </div>
                     ))}
                 </div>

@@ -9,6 +9,7 @@ const createProblem=async(req,res)=>{
     const {title,description,difficulty,tags,visibleTestCases,hiddenTestCases,starterCode,referenceSolution,problemCreator}=req.body;
 
     try{
+        //console.log("🟡 Received body:", req.body);
         for(const {language,completeCode} of referenceSolution){
             //source_code
             //language_id
@@ -20,7 +21,7 @@ const createProblem=async(req,res)=>{
             //expected input for judge0 ,see the documentation for batch submission
             const submissions=visibleTestCases.map((testcase)=>({
                 // @ts-ignore
-                source_code:completeCode,
+                source_code:completeCode.replace(/\\n/g, "\n"),
                 language_id:languageId,
                 stdin:testcase.input,
                 expected_output:testcase.output,
@@ -40,6 +41,7 @@ const createProblem=async(req,res)=>{
                 if(test.status_id>=7) return res.status(400).send("Runtime Error");
             }
         }
+        
         //we can store it in our db
         const userProblem=await Problem.create({
             ...req.body,
@@ -50,7 +52,10 @@ const createProblem=async(req,res)=>{
         
 
     }catch(err){
+        //.log("Received body:", req.body);
+        console.error("Error creating problem:", err.message);
         res.status(500).send("Error brother "+err);
+        
     }
 }
 
@@ -75,7 +80,7 @@ const updateProblem=async(req,res)=>{
             //expected input for judge0 ,see the documentation for batch submission
             const submissions=visibleTestCases.map((testcase)=>({
                 // @ts-ignore
-                source_code:completeCode,
+                source_code:completeCode.replace(/\\n/g, "\n"),
                 language_id:languageId,
                 stdin:testcase.input,
                 expected_output:testcase.output,
