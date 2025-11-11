@@ -7,6 +7,7 @@ import axiosClient from "../utils/axiosClient";
 import { useSelector, useDispatch } from "react-redux";
 import SubmissionHistory from "./SubmissionHistory";
 import ChatAI from "./ChatAI";
+import Editorial from "./Editorial";
 
 const langMap = {
   cpp: "C++",
@@ -182,7 +183,6 @@ const ProblemPage = () => {
             {[
               "description",
               "editorial",
-              "solutions",
               "submissions",
               "chatAI",
             ].map((tab) => (
@@ -239,7 +239,7 @@ const ProblemPage = () => {
             {activeLeftTab === "editorial" && (
               <div className="prose max-w-none">
                 <h2 className="text-xl font-bold mb-4">Editorial </h2>
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">{`Editorial is here for the problem`}</div>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed"><Editorial secureUrl={problem.secureUrl} thumbnailUrl={problem.thumbnailUrl} duration={problem.duration}/></div>
               </div>
             )}
 
@@ -254,9 +254,10 @@ const ProblemPage = () => {
             {activeLeftTab === "submissions" && (
               <div>
                 <h2 className="text-xl font-semibold">My Submissions</h2>
-                <p className="text-gray-400 mt-4">
+                <div className="text-gray-400 mt-4">
                   <SubmissionHistory problemId={problemId} />
-                </p>
+                  
+                </div>
                 {/* In real app, you'd fetch and map over submissions */}
               </div>
             )}
