@@ -35,34 +35,38 @@ const ProblemPage = () => {
 
   // Fetch problem details on load
   useEffect(() => {
-    const fetchProblem = async () => {
-      setLoading(true);
-      try {
-        // Calls GET /problem/problemById/:id
-        const { data } = await axiosClient.get(
-          `/problem/problemById/${problemId}`
-        );
-        setProblem(data);
+  const fetchProblem = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axiosClient.get(`/problem/problemById/${problemId}`);
+      console.log("🟡 Problem fetched:", data);
 
-        // Set starter code based on fetched data
-        const starter = data?.starterCode?.find(
-          (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
-        )?.initialCode;
-        setCode(starter || `// No starter code for ${selectedLanguage}`);
-      } catch (error) {
-        console.error("Error fetching problem:", error);
-        setProblem(null);
-      }
-      setLoading(false);
-    };
-    fetchProblem();
-  }, [problemId]);
+      setProblem(data);
+
+      // Correct mapping for backend languages
+      const langMap = { cpp: "C++", java: "Java", javascript: "Javascript" };
+
+      const starter = data?.starterCode?.find(
+        (s) => s.language.toLowerCase() === langMap[selectedLanguage].toLowerCase()
+      )?.initialCode;
+
+      setCode(starter || `// No starter code for ${selectedLanguage}`);
+    } catch (error) {
+      console.error("Error fetching problem:", error);
+      setProblem(null);
+    }
+    setLoading(false);
+  };
+  fetchProblem();
+}, [problemId]);
+
 
   // Update code in editor when language changes
   useEffect(() => {
     if (problem) {
+      const langMap = { cpp: "C++", java: "Java", javascript: "Javascript" };
       const starter = problem?.starterCode?.find(
-        (s) => s.language.toLowerCase() === selectedLanguage.toLowerCase()
+        (s) => s.language.toLowerCase() === langMap[selectedLanguage].toLowerCase()
       )?.initialCode;
       setCode(starter || `// No starter code for ${selectedLanguage}`);
     }
