@@ -42,7 +42,7 @@ export const checkAuth = createAsyncThunk(
       return data.user;
     } catch (error) {
       if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data); 
+        return rejectWithValue(error.response.data);
       } else {
         return rejectWithValue(error.message);
       }
@@ -80,27 +80,48 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // 2. FIXED: Standardized rejected handler
     const handleRejected = (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        if (action.payload) {
-            // Handle {message: "..."} or just "..."
-            state.error = action.payload.message || action.payload;
+      state.loading = false;
+      state.isAuthenticated = false;
+      state.user = null;
+
+      // Normalize the error message
+      let errorMsg = "";
+      if (action.payload) {
+        if (typeof action.payload === "string") {
+          errorMsg = action.payload;
+        } else if (
+          typeof action.payload === "object" &&
+          action.payload.message
+        ) {
+          errorMsg = action.payload.message;
         } else {
-            state.error = "An unknown error occurred";
+          errorMsg = "An unknown error occurred";
         }
+      } else {
+        errorMsg = action.error?.message || "An unknown error occurred";
+      }
+
+      // Remove extra "Error:" prefix if present
+      errorMsg = errorMsg.replace(/^Error:\s*/i, "");
+
+      // Ignore invalid token message
+      if (errorMsg.toLowerCase().includes("invalid token")) {
+        state.error = null;
+      } else {
+        state.error = errorMsg;
+      }
     };
 
     const handlePending = (state) => {
-        state.loading = true;
-        state.error = null;
+      state.loading = true;
+      state.error = null;
     };
 
     const handleFulfilled = (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = !!action.payload;
-        state.user = action.payload;
-        state.error = null;
+      state.loading = false;
+      state.isAuthenticated = !!action.payload;
+      state.user = action.payload;
+      state.error = null;
     };
 
     builder
