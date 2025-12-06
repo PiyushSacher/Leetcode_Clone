@@ -73,7 +73,7 @@ npm install
 
 Create a `.env` file inside the **backend** folder:
 ```sh
-PORT=5000
+PORT=3000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 REDIS_URL=your_redis_connection_string
@@ -90,7 +90,7 @@ GEMINI_API_KEY=your_google_generative_ai_api_key
 cd backend
 npm run dev
 
-Backend runs on: http://localhost:5000/
+Backend runs on: http://localhost:3000/
 ```
 
 #### 2️⃣ Start Frontend:
